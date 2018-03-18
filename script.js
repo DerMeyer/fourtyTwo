@@ -161,7 +161,6 @@ $('#angelikiButton').on('click', function() {
 // event handling
 
 var toggle = true;
-var newTokenX;
 
 $('#overlay').on('mouseover', function(e) {
     if (toggle && $(e.target).hasClass('isLeft')) {
@@ -189,14 +188,48 @@ $('#gameZone').on('mouseover', function(e) {
 }).on('mousemove', function(e) {
     moveToken(e.clientX);
 }).on('mousedown', function(e) {
-    toggle ? toggle = false : toggle = true;
+    playToken(e);
+});
 
+$(document).on('keydown', function(e) {
+    var leftProp = $('#tokenSlide > div').css('left');
+    var leftX = Number(leftProp.slice(0, leftProp.length - 2));
+    if (e.keyCode === 37 && leftX - $('#tokenSlide').width() / 7 > 0) {
+        $('#tokenSlide > div').css('left', leftX - $('#tokenSlide').width() / 7 + 'px');
+    } else if (e.keyCode === 39 && leftX + $('#tokenSlide').width() / 7 < $('#tokenSlide').width()) {
+        $('#tokenSlide > div').css('left', leftX + $('#tokenSlide').width() / 7 + 'px');
+    } else if (e.keyCode === 40 || e.keyCode === 13) {
+        if (!lock) {
+            lock = true;
+            launchOne();
+            launchTwo();
+            return;
+        }
+        var slot = Math.floor(($('#tokenSlide > div').offset().left - $('#tokenSlide').offset().left) / ($('#tokenSlide').width() / 7) + .5);
+        playToken(e, slot);
+        e.preventDefault();
+    }
+});
+
+// movement functions
+
+function moveToken(x) {
+    if (0 < x - $('#tokenSlide').offset().left && x - $('#tokenSlide').offset().left < $('#tokenSlide').width()) {
+        $('#tokenSlide > div').css('left', x - $('#tokenSlide').offset().left + 'px');
+    }
+}
+
+function playToken(e, slot) {
+    toggle ? toggle = false : toggle = true;
     if (toggle) {
         $('#tokenSlide > div').removeClass('playerTwo');
     } else {
         $('#tokenSlide > div').removeClass('playerOne');
     }
-    var slot = Number(e.target.id.slice(e.target.id.length - 1));
+    if (isNaN(slot)) {
+        console.log('Mouse!');
+        var slot = Number(e.target.id.slice(e.target.id.length - 1));
+    }
     for (var i = 35 + slot; i >= 0 + slot; i -= 7) {
         if ($('#' + i).hasClass('empty')) {
             if (!toggle) {
@@ -221,15 +254,6 @@ $('#gameZone').on('mouseover', function(e) {
             return;
         }
     }
-});
-
-// movement functions
-
-function moveToken(x) {
-    if (0 < x - $('#tokenSlide').offset().left && x - $('#tokenSlide').offset().left < $('#tokenSlide').width()) {
-        $('#tokenSlide > div').css('left', x - $('#tokenSlide').offset().left + 'px');
-        newTokenX = x - $('#tokenSlide').offset().left + 'px';
-    }
 }
 
 function setToken(start, end, player) {
@@ -251,13 +275,14 @@ function setToken(start, end, player) {
 }
 
 var timeoutID;
+var timeoutIDtwo;
 
 function tokenBreath() {
     if (toggle) {
         $('#playerOne').css('transform', 'scale(1.2, 1.2)');
         timeoutID = setTimeout(function() {
             $('#playerOne').css('transform', 'scale(1, 1)');
-            setTimeout(function() {
+            timeoutIDtwo = setTimeout(function() {
                 tokenBreath();
             }, 1000);
         }, 1000);
@@ -265,15 +290,20 @@ function tokenBreath() {
         $('#playerTwo').css('transform', 'scale(1.2, 1.2)');
         timeoutID = setTimeout(function() {
             $('#playerTwo').css('transform', 'scale(1, 1)');
-            setTimeout(function() {
+            timeoutIDtwo = setTimeout(function() {
                 tokenBreath();
             }, 1000);
         }, 1000);
     }
 }
 
+setTimeout(function() {
+    tokenBreath();
+}, 300);
+
 function winner() {
     clearTimeout(timeoutID);
+    clearTimeout(timeoutIDtwo);
     if (!toggle) {
         $('#playerOne').css('z-index', '125').css('transition', 'transform 10s linear 0s').css('transform', 'scale(20, 20)');
     } else {
@@ -283,10 +313,6 @@ function winner() {
         location.reload();
     }, 10000);
 }
-
-setTimeout(function() {
-    tokenBreath();
-}, 500);
 
 // AI
 
