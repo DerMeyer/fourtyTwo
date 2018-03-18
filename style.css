@@ -1,12 +1,14 @@
 /* root */
 
 * {
-    font-family: 'Limelight', cursive;
+    /* font-family: 'Indie Flower', cursive;
+    font-family: 'Rammetto One', cursive; */
+    font-family: 'Gloria Hallelujah', cursive;
+    line-height: 1.2;
     box-sizing: border-box;
 }
 
 body {
-    font-family: 'Rammetto One', cursive;
     margin: 0;
     background-color: whitesmoke;
 }
