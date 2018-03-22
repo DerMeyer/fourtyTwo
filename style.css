@@ -121,6 +121,22 @@ a {
     width: 14vh;
 }
 
+#computer {
+    position: fixed;
+    top: 90.3vh;
+    left: 1.7vw;
+    height: 7vh;
+    width: 7vh;
+    border: 3px solid white;
+    border-radius: 50%;
+    background-color: whitesmoke;
+    background-image: url("computer.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 5vh;
+    z-index: 150;
+}
+
 /* navigation */
 
 nav {

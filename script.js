@@ -9,6 +9,9 @@ for (var a = 0; a < 42; a++) {
     grid.appendChild(emptyField);
 }
 
+let timeoutID,
+    timeoutIDtwo;
+
 // color switch
 
 var shade;
@@ -161,6 +164,16 @@ $('#angelikiButton').on('click', function() {
 // event handling
 
 var toggle = true;
+var computer;
+
+$('#computer').on('click', function() {
+    computer ? computer = false : computer = true;
+    if (computer) {
+        $('#computer').css('background-color', 'red');
+    } else {
+        $('#computer').css('background-color', 'whitesmoke');
+    }
+})
 
 $('#overlay').on('mouseover', function(e) {
     if (toggle && $(e.target).hasClass('isLeft')) {
@@ -227,7 +240,6 @@ function playToken(e, slot) {
         $('#tokenSlide > div').removeClass('playerOne');
     }
     if (isNaN(slot)) {
-        console.log('Mouse!');
         var slot = Number(e.target.id.slice(e.target.id.length - 1));
     }
     for (var i = 35 + slot; i >= 0 + slot; i -= 7) {
@@ -264,18 +276,151 @@ function setToken(start, end, player) {
             setToken(start += 7, end, player)
         }, 30);
     } else {
+        memorize(end, player);
         $('#' + end).addClass(player).css('box-shadow', 'inset .3vh .3vh 1vh black').removeClass('empty');
-
         $('#grid').css('transform', 'translateY(1%)');
         setTimeout(function() {
             $('#grid').css('transform', 'translateY(0)');
-            checkForVictory(end, player);
+            if (checkForVictory(end, player).includes(3)) {
+                winner();
+            }
+            hottestSlot(player);
         }, 150);
+        if (computer) {
+            setTimeout(function() {
+                toggle && Rob();
+            }, 300);
+        }
     }
 }
 
-var timeoutID;
-var timeoutIDtwo;
+// Rob
+
+function Rob() {
+    var slot,
+        slotP1 = hottestSlot('playerOne'),
+        slotP2 = hottestSlot('playerTwo');
+
+    if (slotP2[1] > slotP1[1]) {
+        slot = slotP2[0];
+    } else if (slotP2[2]) {
+        slot = slotP2[0];
+    } else {
+        slot = slotP1[0];
+    }
+    if (!slot && slot !== 0) {
+        slot = Math.floor(Math.random() * 7);
+    }
+
+    setTimeout(() => playToken(0, slot), 1000);
+}
+
+function lookAhead() {
+
+}
+
+function hottestSlot(player) {
+    let a = [],
+        r,
+        peak;
+
+    for (let x = 0; x < 7; x++) {
+        let c = 1;
+        for (let i = 35 + x; i >= 0 + x; i -= 7) {
+            if (c && $('#' + i).hasClass('empty')) {
+                a.push(checkForVictory(i, player).reduce((a, v) => Math.max(a, v)));
+                c--;
+            }
+        }
+    }
+
+    peak = a.reduce((a, v) => Math.max(a, v));
+    r = a.map((e, i) => e === peak
+                        ? i
+                        : -1
+        ).filter(e => e > -1);
+
+    if (a.reduce((a, v) => Math.max(a, v)) > 2) {
+        // console.log('flag ' + player);
+        return [r[Math.floor(Math.random() * r.length)], peak, 1];
+    }
+    // console.log(`a ${player} looks like this: ${a}`);
+    // console.log(`r ${player} looks like this: ${r}`);
+
+    return [r[Math.floor(Math.random() * r.length)], peak, 0];
+}
+
+function checkForVictory(position, player) {
+    let a = [];
+    for (let x = 0; x < 7; x++) {
+        for (let y = 0; y < 6; y++) {
+            if ($('#' + (x + y * 7)).hasClass(player)) {
+                a.push([x, y]);
+            }
+        }
+    }
+
+    let x = position % 7,
+        y = (position - position % 7) / 7,
+
+        top = gameData(x, y, 0, 1, a, 0),
+        left = gameData(x, y, 1, 0, a, 0),
+        right = gameData(x, y, -1, 0, a, 0),
+        downRight = gameData(x, y, 1, 1, a, 0),
+        downLeft = gameData(x, y, -1, 1, a, 0),
+        upRight = gameData(x, y, 1, -1, a, 0),
+        upLeft = gameData(x, y, -1, -1, a, 0);
+
+    function gameData(x, y, xAdd, yAdd, a, c) {
+        if (a.some(e => e[0] === x + xAdd && e[1] === y + yAdd)) {
+            return gameData(x + xAdd, y + yAdd, xAdd, yAdd, a, c + 1);
+        } else {
+            return c;
+        }
+    }
+    return [top, left, right, downRight, downLeft, upRight, upLeft, left + right, downRight + upLeft, downLeft + upRight];
+}
+
+// learning
+
+function recall() {
+
+}
+
+var memorize = memory();
+function memory() {
+    var playerOne = [];
+    var playerTwo = [];
+    return function(end, player) {
+        if (player === 'playerOne') {
+            playerOne += end + ' ';
+        } else if (player === 'playerTwo') {
+            playerTwo += end + ' ';
+        }
+        return [playerOne, playerTwo];
+    }
+}
+
+var LTMemory = longTermMemory();
+
+function longTermMemory() {
+    try {
+        var LTMemory = JSON.parse(localStorage.getItem('memories'));
+    } catch(err) {
+        console.log(err);
+    }
+    return LTMemory;
+}
+
+function rememberLongTerm(store) {
+        try {
+            localStorage.setItem('memories', JSON.stringify(store));
+        } catch (err) {
+            console.log(err);
+        }
+}
+
+// animation
 
 function tokenBreath() {
     if (toggle) {
@@ -309,116 +454,10 @@ function winner() {
     } else {
         $('#playerTwo').css('z-index', '125').css('transition', 'transform 10s linear 0s').css('transform', 'scale(20, 20)');
     }
+    var store = memorize();
+    console.log(store);
+    rememberLongTerm(store);
     setTimeout(function() {
         location.reload();
     }, 10000);
-}
-
-// AI
-
-function checkForVictory(position, player) {
-    var a = [];
-    for (var x = 0; x < 7; x++) {
-        for (var y = 0; y < 6; y++) {
-            if ($('#' + (x + y * 7)).hasClass(player)) {
-                a.push([x, y]);
-            }
-        }
-    }
-    var top = fromTop(position % 7, (position - position % 7) / 7 + 1, 0, a);
-    var left = fromLeft(position % 7 + 1, (position - position % 7) / 7, 0, a);
-    var right = fromRight(position % 7 - 1, (position - position % 7) / 7, 0, a);
-
-    var downRight = fromLeftTop(position % 7 + 1, (position - position % 7) / 7 + 1, 0, a);
-    var downLeft = fromRightTop(position % 7 - 1, (position - position % 7) / 7 + 1, 0, a);
-    var upRight = fromLeftBottom(position % 7 + 1, (position - position % 7) / 7 - 1, 0, a);
-    var upLeft = fromRightBottom(position % 7 - 1, (position - position % 7) / 7 - 1, 0, a);
-
-    if (left + right > 2 || downRight + upLeft > 2 || downLeft + upRight > 2) {
-        winner();
-    }
-}
-
-function fromTop(x, y, c, a) {
-    if (c > 2) {
-        winner();
-    } else if (a.some(function(e) {
-        return e[0] === x && e[1] === y;
-    })) {
-        return fromTop(x, y + 1, c + 1, a);
-    } else {
-        return c;
-    }
-}
-
-function fromLeft(x, y, c, a) {
-    if (c > 2) {
-        winner();
-    } else if (a.some(function(e) {
-        return e[0] === x && e[1] === y;
-    })) {
-        return fromLeft(x + 1, y, c + 1, a);
-    } else {
-        return c;
-    }
-}
-
-function fromRight(x, y, c, a) {
-    if (c > 2) {
-        winner();
-    } else if (a.some(function(e) {
-        return e[0] === x && e[1] === y;
-    })) {
-        return fromRight(x - 1, y, c + 1, a);
-    } else {
-        return c;
-    }
-}
-
-function fromLeftTop(x, y, c, a) {
-    if (c > 2) {
-        winner();
-    } else if (a.some(function(e) {
-        return e[0] === x && e[1] === y;
-    })) {
-        return fromLeftTop(x + 1, y + 1, c + 1, a);
-    } else {
-        return c;
-    }
-}
-
-function fromRightTop(x, y, c, a) {
-    if (c > 2) {
-        winner();
-    } else if (a.some(function(e) {
-        return e[0] === x && e[1] === y;
-    })) {
-        return fromRightTop(x - 1, y + 1, c + 1, a);
-    } else {
-        return c;
-    }
-}
-
-function fromLeftBottom(x, y, c, a) {
-    if (c > 2) {
-        winner();
-    } else if (a.some(function(e) {
-        return e[0] === x && e[1] === y;
-    })) {
-        return fromLeftBottom(x + 1, y - 1, c + 1, a);
-    } else {
-        return c;
-    }
-}
-
-function fromRightBottom(x, y, c, a) {
-    if (c > 2) {
-        winner();
-    } else if (a.some(function(e) {
-        return e[0] === x && e[1] === y;
-    })) {
-        return fromRightBottom(x - 1, y - 1, c + 1, a);
-    } else {
-        return c;
-    }
 }
