@@ -65,22 +65,23 @@ var coasWhite = ['gamble-white', 'burger-white', 'chinese-white', 'coin-white', 
 
 var defCoaOne = Math.floor(Math.random() * 10);
 var defCoaTwo = Math.floor(Math.random() * 10);
-var coaOne = coasBlack[defCoaOne];
+var coaOne = `coatOfArms/${coasWhite[defCoaOne]}`;
 var coaTwo = coasWhite[defCoaTwo];
 
 var cOne = count(defCoaOne);
 var cTwo = count(defCoaTwo);
 
-$('#playerOne').css('background-image', 'url("coatOfArms/' + coaOne + '.png")');
+$('#playerOne').css('background-image', 'url("' + coaOne + '.png")');
 $('#playerTwo').css('background-image', 'url("coatOfArms/' + coaTwo + '.png")');
 
 $('#coatOfArmsOne').on('click', function() {
     if (shade < 383) {
-        coaOne = coasWhite[cOne()];
+        coaOne = `coatOfArms/${coasWhite[cOne()]}`;
     } else {
-        coaOne = coasBlack[cOne()];
+        coaOne = `coatOfArms/${coasBlack[cOne()]}`;
     }
-    $('#playerOne').css('background-image', 'url("coatOfArms/' + coaOne + '.png")');
+    console.log(coaOne);
+    $('#playerOne').css('background-image', 'url("' + coaOne + '.png")');
 });
 
 $('#coatOfArmsTwo').on('click', function() {
@@ -109,6 +110,16 @@ function count(init) {
 
 var lock;
 
+$('#computer').on('click', () => {
+    $('#data').toggleClass('hidden');
+    $('#playerOne').toggleClass('hidden');
+    coaOne = 'computer';
+    colorsOne = ['red', 'white'];
+    lock = true;
+    shade = 382;
+    launchOne();
+});
+
 $('#goOne').on('click', function() {
     lock = true;
     shade = 382;
@@ -116,7 +127,8 @@ $('#goOne').on('click', function() {
 });
 
 function launchOne() {
-    $('body').prepend('<style>.playerOne {background-image: url("coatOfArms/' + coaOne + '.png"); background-color: ' + colorsOne[0] + '; border-color: ' + colorsOne[1] + ';}</style>');
+    console.log(coaOne);
+    $('body').prepend('<style>.playerOne {background-image: url("' + coaOne + '.png"); background-color: ' + colorsOne[0] + '; border-color: ' + colorsOne[1] + ';}</style>');
 
     $('#coatOfArmsOne').css('transition-duration', '1s').css('top', '5.5vh');
     $('#setRGBOne').css('transition-duration', '1s').css('top', '5.5vh');
@@ -284,7 +296,7 @@ function setToken(start, end, player) {
             if (checkForVictory(end, player).includes(3)) {
                 winner();
             }
-            hottestSlot(player);
+            // hottestSlot(player);
         }, 150);
         if (computer) {
             setTimeout(function() {
@@ -312,7 +324,8 @@ function Rob() {
         slot = Math.floor(Math.random() * 7);
     }
 
-    setTimeout(() => playToken(0, slot), 1000);
+    $('#choice').val(slot);
+    setTimeout(() => playToken(0, slot), 1500);
 }
 
 function lookAhead() {
@@ -334,11 +347,16 @@ function hottestSlot(player) {
         }
     }
 
+    player === 'playerOne' ? $('#countOne').val(`${a}`) : $('#countTwo').val(`${a}`)
+
     peak = a.reduce((a, v) => Math.max(a, v));
+
     r = a.map((e, i) => e === peak
                         ? i
                         : -1
         ).filter(e => e > -1);
+
+    player === 'playerOne' ? $('#peakOne').val(`${peak} / ${r}`) : $('#peakTwo').val(`${peak} / ${r}`)
 
     if (a.reduce((a, v) => Math.max(a, v)) > 2) {
         // console.log('flag ' + player);

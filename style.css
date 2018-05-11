@@ -121,6 +121,36 @@ a {
     width: 14vh;
 }
 
+
+.hidden {
+    display: none;
+}
+#data h2, h3, span, input {
+    font-family: 'Do Hyeon', sans-serif;
+}
+#data h3 {
+    color: red;
+}
+#data input {
+    font-size: 3vh;
+    height: 4vh;
+    width: 10vw;
+    margin-left: .5vw;
+}
+#data {
+    position: fixed;
+    top: 15vh;
+    left: 1vw;
+    height: 74vh;
+    width: 20vw;
+    padding: 1vh;
+    border: 1px solid lightgray;
+    border-Radius: 2vh;
+    box-shadow: 1vh 1vh 1vh gray;
+    background-color: white;
+    z-index: 150;
+}
+
 #computer {
     position: fixed;
     top: 90.3vh;
